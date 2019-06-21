@@ -48,8 +48,9 @@ def convertCycID2sbmlID(id):
     Output: SBML compliant IDs
     Author: Sanu Shameer (sanushameer@gmail.com)
     '''
-    import regex
     new_id = id.replace(".","_PERIOD_")
+    new_id = new_id.replace("%2b","_")
+    new_id = new_id.replace("|","")
     new_id = new_id.replace("+-","_")
     new_id = new_id.replace("--","_")
     new_id = new_id.replace("-","_")
