@@ -7,29 +7,41 @@ def extractGeneAndProteinAssociation(cyc,frame_id):
     Author: Sanu Shameer (sanushameer@gmail.com)
     '''
     rxn = getFrame(cyc,frame_id)
-    if rxn.reaction_direction == None:
+    if frame_id in cyc.reactions.instances:
         print("Error check if "+frame_id+" is reaction")
-        return
+        return ""
     else:
-        enzrxns = cyc.get_frame_objects(rxn.enzymatic_reaction)
-        GPR = "(GPR)"
-        temp1 = ""
-        for enzrxn in enzrxns:
-            enz = getFrame(cyc,enzrxn.enzyme)
-            if temp1 == "":
-                temp1 = str(enz.frameid)
-            else:
-                temp1 = temp1 +" or "+str(enz.frameid)
+        if "enzymatic_reaction" not in dir(rxn):
+            return ""
+        else:
+            enzrxns = cyc.get_frame_objects(rxn.enzymatic_reaction)
+            GPR = "(GPR)"
+            temp1 = ""
+            for enzrxn in enzrxns:
+                enz = getFrame(cyc,enzrxn.enzyme)
+                if "names" not in dir(enz):
+                    continue
+                if "gene" not in dir(enz):
+                    continue
+                if temp1 == "":
+                    temp1 = str(enz.frameid)
+                else:
+                    temp1 = temp1 +" or "+str(enz.frameid)
                 temp2 = ""
                 for gene in enz.gene:
                     gene = getFrame(cyc,gene)
+                    if "accession_1" not in dir(gene):
+                        temp1.replace(enz.frameid,"")
+                        continue
                     if temp2 == "":
                         temp2 = gene.accession_1
                     else:
                         temp2 = temp2 +" or "+gene.accession_1
-                temp1 = temp1.replace(enz.frameid,temp2)
-        GPR = GPR.replace("GPR",temp1)
-    return GPR
+                #print temp1
+                #print temp2
+                temp1 = temp1.replace(enz.frameid,"("+temp2+")")
+            GPR = GPR.replace("GPR",temp1)
+            return GPR
 
 def getFrame(cyc,frame_id):
     '''
