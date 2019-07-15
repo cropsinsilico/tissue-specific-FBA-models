@@ -134,3 +134,12 @@ def convertCycID2sbmlID(id):
     new_id = new_id.replace("-","_")
     new_id = new_id.replace("+","_")
     return new_id
+
+def find_average(temp_list):
+    '''
+    This function calculates the average from a list of numbers
+    Input: list
+    Output: float
+    Author:Sanu Shameer (sanushameer@gmail.com)
+    '''
+    return sum(temp_list)/len(temp_list)
