@@ -32,10 +32,7 @@ def addGPR2Models(model,cyc):
                 ,"Plastoquinol_Oxidase_p","SUCCINATE_COA_LIGASE_GDP_FORMING_RXN_m","RXN_1781_v" \
                 ,"PREPHENATE_DEHYDROGENASE_NADP_RXN_p","PREPHENATEDEHYDROG_RXN_p" \
                 ,"MALEYLACETOACETATE_ISOMERASE_RXN_c","RXN_9654_p","LCYSDESULF_RXN_c","RXN_9958_NAD_m" \
-                ,"HEXOKINASE_RXN_MANNOSE_c","PYRUVDEH_RXN_p","PYRUVDEH_RXN_m" \
-                ,"RXN_15130_p" \
-                ,"2_AMINOADIPATE_AMINOTRANSFERASE_RXN_c","GLURS_RXN_c","ALLYSINE_DEHYDROG_RXN_c" \
-                ,"GLUTARYL_COA_DEHYDROG_RXN_m","GLUTACONYL_COA_DECARBOXYLASE_RXN_x"] #last 3 lines present in latest version of SoyCyc
+                ,"HEXOKINASE_RXN_MANNOSE_c","PYRUVDEH_RXN_p","PYRUVDEH_RXN_m"] #last 3 lines present in latest version of SoyCyc
     print "--------------\nThis list of metabolic reactions are ignored"
     print SoyIgnoreList
     print "--------------"
