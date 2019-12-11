@@ -33,9 +33,9 @@ def addGPR2Models(model,cyc):
                 ,"PREPHENATE_DEHYDROGENASE_NADP_RXN_p","PREPHENATEDEHYDROG_RXN_p" \
                 ,"MALEYLACETOACETATE_ISOMERASE_RXN_c","RXN_9654_p","LCYSDESULF_RXN_c","RXN_9958_NAD_m" \
                 ,"HEXOKINASE_RXN_MANNOSE_c","PYRUVDEH_RXN_p","PYRUVDEH_RXN_m"] #last 3 lines present in latest version of SoyCyc
-    print "--------------\nThis list of metabolic reactions are ignored"
-    print SoyIgnoreList
-    print "--------------"
+    print("--------------\nThis list of metabolic reactions are ignored")
+    print(SoyIgnoreList)
+    print("--------------")
     IDedlist = set()
     for rxnlist in rxnIDed.values():
         IDedlist = IDedlist.union(set(rxnlist))
@@ -50,7 +50,7 @@ def addGPR2Models(model,cyc):
                (not "Protein" in rxn.id) and \
                (not "TRNA_LIGASE" in rxn.id):
                if rxn.id not in SoyIgnoreList:
-                   print rxn.id
+                   print(rxn.id)
     for k in rxnIDed.keys():
         for v in rxnIDed.get(k):
             rxn = v
@@ -140,3 +140,20 @@ def find_average(temp_list):
     Author:Sanu Shameer (sanushameer@gmail.com)
     '''
     return sum(temp_list)/len(temp_list)
+
+def adjustObjectiveBasedOnDaylength(diel_leaf,daylength,obj_rxn="diel_biomass",Phloem_day = "X_Phloem_contribution_t1",Phloem_night="X_Phloem_contribution_t2"):
+    '''
+    This function adjusts the day/night phloem contribution
+    in a diel leaf objective.
+    Input:  1) diel model, 2) length of day in hours, 3)ID of objective,
+            4) Metabolite ID of day-time phloem, 5) Metabolite ID of night-time
+            phloem
+    Output: 1)diel model
+    '''
+    ratio = float(3*daylength)/(24-daylength)
+    rxn = diel_leaf.reactions.get_by_id(obj_rxn)
+    met1 = diel_leaf.metabolites.get_by_id(Phloem_day)
+    coeff = abs(rxn.metabolites.get(met1))
+    new_coeff = ratio - coeff
+    rxn.add_metabolites({met1:-1*new_coeff})
+    return diel_leaf
