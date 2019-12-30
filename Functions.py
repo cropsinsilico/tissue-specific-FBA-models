@@ -125,11 +125,19 @@ def convertCycID2sbmlID(id):
     '''
     new_id = id.replace(".","_PERIOD_")
     new_id = new_id.replace("%2b","_")
+    new_id = new_id.replace("&#039;","_")
+    new_id = new_id.replace("&amp;beta;","B")
+    new_id = new_id.replace("&beta;","B")
     new_id = new_id.replace("|","")
     new_id = new_id.replace("+-","_")
     new_id = new_id.replace("--","_")
     new_id = new_id.replace("-","_")
     new_id = new_id.replace("+","_")
+    new_id = new_id.replace("'","_")
+    new_id = new_id.replace("(","_")
+    new_id = new_id.replace(")","_")
+    new_id = new_id.replace("/","_")
+    new_id = new_id.replace("__","_")
     return new_id
 
 def find_average(temp_list):
