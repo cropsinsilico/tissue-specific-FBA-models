@@ -165,3 +165,38 @@ def adjustObjectiveBasedOnDaylength(diel_leaf,daylength,obj_rxn="diel_biomass",P
     new_coeff = ratio - coeff
     rxn.add_metabolites({met1:-1*new_coeff})
     return diel_leaf
+
+def generateMetaboliteFormula(rxn):
+    count = 0
+    for met in rxn.metabolites:
+        if met.formula=="" or met.formula=="NA" or met.formula == None:
+            if met.formula == "NA" or met.formula == None:
+                met.formula = ""
+            count = count + 1
+    if count == 1:
+        unb = rxn.check_mass_balance()
+        #print(unb.keys())
+        for met in rxn.metabolites:
+            stoich = rxn.metabolites[met]
+            if met.formula == "":
+                tempForm = ""
+                for a in ["C","H","O"]:
+                    if a in unb.keys():
+                        if round(unb[a]/stoich,6)==0:
+                            continue
+                        tempForm = tempForm+a+str(abs(unb[a])/stoich)
+                        #print(a)
+                        #print(unb[a])
+                        #print(stoich)
+                        #print(abs(unb[a])/stoich)
+                for a in unb.keys():
+                    if a in ["C","H","O"]:
+                        continue
+                    if a=="charge" or round(unb[a]/stoich,6)==0:
+                        continue
+                    tempForm = tempForm+a+str(abs(unb[a])/stoich)
+                met.formula = tempForm
+                print(met.id)
+                print(tempForm)
+    else:
+        print("Unable to generate missing metabolite formula")
