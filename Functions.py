@@ -58,6 +58,7 @@ def addGPR2Models(model,cyc):
                 #print k
                 GPR = extractGeneAndProteinAssociation(cyc,k)
                 if GPR != "()":
+                    GPR = GPR.replace("() or ","")
                     rxn.gene_reaction_rule = GPR
     return model
 
