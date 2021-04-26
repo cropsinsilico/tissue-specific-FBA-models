@@ -212,3 +212,128 @@ def removeSpecificMetChargedState(model,metlist):
             rxn.add_metabolites({defaultForm:-0.03,
                                  model.metabolites.get_by_id("PROTON_"+defaultForm.compartment):-0.03})
         return model
+
+def updateFAcomposition(model,organ,biomass):
+
+    temp = model.copy()
+    temp.reactions.FattyAcid_composition_p.remove_from_model()
+    temp.metabolites.Fatty_Acids_p.formula=""
+    temp.metabolites.Fatty_Acids_c.formula=""
+    temp.metabolites.Long_Chain_Acyl_CoAs_p.formula=""
+    from cobra.core import Reaction
+    FACP = {"PALMITATE_p":"Palmitoyl_ACPs_p",
+            "CPD_9245_p":"Palmitoleoyl_ACP_p",
+            "CPD_17412_p":"hexadecadienoate_ACP_p",
+            "CPD_17291_p":"hexadecatrienoate_ACP_p",
+            "STEARIC_ACID_p":"Stearoyl_ACPs_p",
+            "OLEATE_CPD_p":"Oleoyl_ACPs_p",
+            "Octadecadienoate_p":"Octadecadienoyl_ACP_p",
+            "LINOLENIC_ACID_p":"Octadecatrienoyl_ACP_p",
+            "ARACHIDIC_ACID_p":"Arachidoyl_ACPs_p",
+            "CPD_16709_p":"Eicosenoyl_ACP_p",
+            "DOCOSANOATE_p":"Behenoyl_ACPs_p"}
+
+    PLs = ["ACYL_SN_GLYCEROL_3P_p","L_PHOSPHATIDATE_p","L_PHOSPHATIDATE_m","DIACYLGLYCEROL_p",
+           "DIACYLGLYCEROL_r","Triacylglycerols_p","PHOSPHATIDYL_CHOLINE_r",
+           "L_1_PHOSPHATIDYL_ETHANOLAMINE_r","L_1_PHOSPHATIDYL_GLYCEROL_p",
+           "L_1_PHOSPHATIDYL_GLYCEROL_P_p","L_1_PHOSPHATIDYL_GLYCEROL_P_m",
+           "L_1_PHOSPHATIDYL_GLYCEROL_m","2_Lysophosphatidylcholines_r",
+           "Lysophosphatidylglycerols_r","CDPDIACYLGLYCEROL_p","CDPDIACYLGLYCEROL_m",
+           "D_Galactosyl_12_diacyl_glycerols_p","Galactosyl_galactosyl_diacyl_glycerols_p"]
+
+
+    for met in PLs:
+        met=temp.metabolites.get_by_id(met)
+        met.formula=""
+
+    FAdict = dict(biomass[biomass["type"]=="fattyacid"][organ])
+
+    k = organ
+    RXN1 = Reaction("Fatty_acid_mix_"+k)
+    RXN2 = Reaction("Fatty_acid_ACP_"+k)
+    tot = 0
+    for met in FAdict.keys():
+        RXN1.add_metabolites({temp.metabolites.get_by_id(met):-1*FAdict[met]})
+        RXN2.add_metabolites({temp.metabolites.get_by_id(FACP[met]):-1*FAdict[met]})
+        tot = tot+FAdict[met]
+    print(tot)
+    if tot==0:
+        RXN1.add_metabolites({temp.metabolites.PALMITATE_p:-1})
+        RXN2.add_metabolites({temp.metabolites.Palmitoyl_ACPs_p:-1})
+        tot = 1
+    RXN1.add_metabolites({temp.metabolites.Fatty_Acids_p:tot})
+    RXN1.lower_bound = 1000
+    RXN1.upper_bound = 0
+    temp.add_reaction(RXN1)
+
+    RXN2.add_metabolites({temp.metabolites.Fatty_acyl_ACP_p:tot})
+    RXN2.lower_bound = 1000
+    RXN2.upper_bound = 0
+    temp.add_reaction(RXN2)
+
+    generateMissingFormula(temp)
+
+    return temp
+
+def generateMissingFormula(model,debug=False):
+    loop_counter = 0
+    former = 0
+    for met in model.metabolites:
+        if met.formula == "" or met.formula == "NA":
+            former = former +1
+    latter = 1
+    while True:
+        loop_counter = loop_counter+1
+        if debug:
+            print("Loop = "+str(loop_counter))
+        former = latter
+        for rxn in model.reactions:
+            count = 0
+            for met in rxn.metabolites:
+                if met.formula=="" or met.formula=="NA" or met.formula == None:
+                    if met.formula == "NA" or met.formula == None:
+                        met.formula = ""
+                    count = count + 1
+                    coeff = rxn.metabolites[met]
+            if count == 1:
+                unb = rxn.check_mass_balance()
+                eqn = rxn.reaction
+                eqn = " "+eqn+" "
+                for met in rxn.metabolites.keys():
+                    formula = met.formula
+                    if formula == None:
+                        formula = "0"
+                        NF_list.add(rxn.id)
+                    eqn=eqn.replace(" "+met.id+" ","("+formula+")")
+                if debug:
+                    print(eqn)
+                    print(unb)
+                for met in rxn.metabolites:
+                    if met.formula == "":
+                        tempForm = ""
+                        for a in sorted(unb.keys()):
+                            if a=="charge" or round(unb[a],2)==0:
+                                continue
+                            num = float(abs(unb[a]))/abs(coeff)
+                            if str(round(num))==str(num):
+                                tempForm = tempForm+a+str(int(round(num)))
+                            else:
+                                tempForm = tempForm+a+str(num)
+                                #print(a)
+                                #print(round(num)==num)
+                                #print(round(num))
+                                #print(num)
+                                #print(type(round(num)))
+                                #print(type(num))
+                        met.formula = tempForm
+                        if debug:
+                            print(met.id)
+                            print(tempForm)
+        latter = 0
+        for met in model.metabolites:
+            if met.formula == "" or met.formula == "NA":
+                latter = latter +1
+        if former == latter:
+            break
+
+        
