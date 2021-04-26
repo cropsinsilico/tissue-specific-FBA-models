@@ -201,3 +201,14 @@ def generateMetaboliteFormula(rxn):
                 print(tempForm)
     else:
         print("Unable to generate missing metabolite formula")
+
+def removeSpecificMetChargedState(model,metlist):
+    for met in metlist:
+        met = model.metabolites.get_by_id(met)
+        rxn2edit = set(met.reactions)
+        defaultForm = model.metabolites.get_by_id(met.id[1:])
+        met.remove_from_model()
+        for rxn in rxn2edit:
+            rxn.add_metabolites({defaultForm:-0.03,
+                                 model.metabolites.get_by_id("PROTON_"+defaultForm.compartment):-0.03})
+        return model
