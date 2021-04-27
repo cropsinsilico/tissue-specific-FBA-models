@@ -336,4 +336,165 @@ def generateMissingFormula(model,debug=False):
         if former == latter:
             break
 
-        
+def generateStemModel(model):
+	from cobra.core import Reaction
+	for met in model.reactions.Phloem_output_tx.metabolites.keys():
+		met2 = met.copy()
+		if met.id=="sSUCROSE_b":
+			met2.id = "SUCROSE_ph"
+			met = model.metabolites.get_by_id("SUCROSE_c")
+		elif "PROTON" in met.id:
+			continue
+		else:
+			met2.id = met.id.replace("_c","_ph")
+		met2.compartment = "ph"
+		model.add_metabolites(met2)
+		rxn = Reaction(met2.id+"_exchange")
+		rxn.add_metabolites({met2:1})
+		model.add_reaction(rxn)
+		rxn = Reaction(met2.id.replace("_ph","_phloem_uptake"),name=met2.id.replace("_ph","_phloem_uptake"))
+		rxn.add_metabolites({met2:-1,model.metabolites.get_by_id("PROTON_e"):-1,
+                             met:1,model.metabolites.get_by_id("PROTON_c"):1})
+		rxn.lower_bound = 0
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+        #print(rxn.reaction)
+	return model
+
+def generateRootModel(model,symbiont=None):
+	from cobra.core import Reaction
+	for met in model.reactions.Phloem_output_tx.metabolites.keys():
+		met2 = met.copy()
+		if met.id=="sSUCROSE_b":
+			met2.id = "SUCROSE_ph"
+			met = model.metabolites.get_by_id("SUCROSE_c")
+		elif "PROTON" in met.id:
+			continue
+		else:
+			met2.id = met.id.replace("_c","_ph")
+		met2.compartment = "ph"
+		model.add_metabolites(met2)
+		rxn = Reaction(met2.id+"_exchange")
+		rxn.add_metabolites({met2:1})
+		model.add_reaction(rxn)
+
+		rxn = Reaction(met2.id.replace("_ph","_phloem_uptake"),name=met2.id.replace("_ph","_phloem_uptake"))
+		rxn.add_metabolites({met2:-1,model.metabolites.get_by_id("PROTON_e"):-1,
+                             met:1,model.metabolites.get_by_id("PROTON_c"):1})
+		rxn.lower_bound = 0
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+	#add xylem reactions
+	for met in ["CAII","MGII","KI","NITRATE","SULFATE","AMMONIUM","WATER","GLT","L_ASPARTATE","ASN","GLN"]:
+		met2 = model.metabolites.get_by_id(met+"_c").copy()
+		met2.id = met+"_xy"
+		met2.compartment = "xy"
+
+		rxn = Reaction(met+"_exchange")
+		rxn.add_metabolites({met2:-1})
+		rxn.lower_bound = 0
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		rxn = Reaction(met+"_xylem_export")
+		rxn.add_metabolites({model.metabolites.get_by_id(met+"_c"):-1,met2:1})
+		model.add_reaction(rxn)
+
+	if symbiont == None:
+		return model
+	else:
+		model.reactions.Nitrate_tx.upper_bound = 0
+		model.reactions.Nitrate_tx.lower_bound = 0
+
+		#adding symbiont compartment
+		from cobra import io
+		rhizo = io.read_sbml_model(symbiont["path"])
+		for met in rhizo.metabolites:
+			met.compartment = met.compartment+"_rhizo"
+		rhizo.compartments={"c_rhizo":"rhizobe cytosol","e_rhizo":"rhizobe extracellular"}
+		model = model+rhizo
+
+		#     rxn = Reaction("Sucrose_exchange_symbiont")
+		#     rxn.name = rxn.id.replace("_"," ")
+		#     rxn.add_metabolites({model.metabolites.get_by_id("SUCROSE_c"):-1,model.metabolites.get_by_id("cpd00076[e0]"):1})
+		#     rxn.lower_bound = -1000
+		#     rxn.upper_bound = 1000
+		#     model.add_reaction(rxn)
+
+		rxn = Reaction("Alanine_exchange_symbiont")
+		rxn.name = rxn.id.replace("_"," ")
+		rxn.add_metabolites({model.metabolites.get_by_id("L_ALPHA_ALANINE_c"):-1,
+                             model.metabolites.get_by_id("ala__L[e]"):1})
+		rxn.lower_bound = -1000
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		rxn = Reaction("Aspartate_exchange_symbiont")
+		rxn.name = rxn.id.replace("_"," ")
+		rxn.add_metabolites({model.metabolites.get_by_id("L_ASPARTATE_c"):-1,
+                             model.metabolites.get_by_id("asp__L[e]"):1})
+		rxn.lower_bound = -1000
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		rxn = Reaction("Glutamate_exchange_symbiont")
+		rxn.name = rxn.id.replace("_"," ")
+		rxn.add_metabolites({model.metabolites.get_by_id("GLT_c"):-1,
+                             model.metabolites.get_by_id("glu__L[e]"):1})
+		rxn.lower_bound = -1000
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		rxn = Reaction("Malate_exchange_symbiont")
+		rxn.name = rxn.id.replace("_"," ")
+		rxn.add_metabolites({model.metabolites.get_by_id("MAL_c"):-1,
+                             model.metabolites.get_by_id("mal__L[e]"):1})
+		rxn.lower_bound = -1000
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		rxn = Reaction("Succinate_exchange_symbiont")
+		rxn.name = rxn.id.replace("_"," ")
+		rxn.add_metabolites({model.metabolites.get_by_id("SUC_c"):-1,
+                             model.metabolites.get_by_id("succ[e]"):1})
+		rxn.lower_bound = -1000
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		rxn = Reaction("Ammonium_exchange_symbiont")
+		rxn.name = rxn.id.replace("_"," ")
+		rxn.add_metabolites({model.metabolites.get_by_id("AMMONIUM_c"):-1,
+                             model.metabolites.get_by_id("fixedNH3[e]"):1})
+		rxn.lower_bound = -1000
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		return model
+
+def generateSeedModel(model):
+	from cobra.core import Reaction
+	for met in model.reactions.Phloem_output_tx.metabolites.keys():
+		met2 = met.copy()
+		if met.id=="sSUCROSE_b":
+			met2.id = "SUCROSE_ph"
+			met = model.metabolites.get_by_id("SUCROSE_c")
+		elif "PROTON" in met.id:
+			continue
+		else:
+			met2.id = met.id.replace("_c","_ph")
+		met2.compartment = "ph"
+		model.add_metabolites(met2)
+
+		rxn = Reaction(met2.id+"_exchange")
+		rxn.add_metabolites({met2:1})
+		model.add_reaction(rxn)
+
+		rxn = Reaction(met2.id.replace("_ph","_phloem_uptake"),name=met2.id.replace("_ph","_phloem_uptake"))
+		rxn.add_metabolites({met2:-1,model.metabolites.get_by_id("PROTON_e"):-1,
+                             met:1,model.metabolites.get_by_id("PROTON_c"):1})
+		rxn.lower_bound = 0
+		rxn.upper_bound = 1000
+		model.add_reaction(rxn)
+
+		#print(rxn.reaction)
+	return model
