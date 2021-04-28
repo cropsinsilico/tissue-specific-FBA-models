@@ -498,3 +498,36 @@ def generateSeedModel(model):
 
 		#print(rxn.reaction)
 	return model
+
+def createEmptyBiomassDataFrame():
+	import pandas as pd
+	biomass = pd.DataFrame(data={"":["sSUCROSE_b","GLC_c","FRU_c","Starch_b","Cellulose_b","Xylan_b",
+	                                 "L_PHOSPHATIDATE_p","PHOSPHATIDYL_CHOLINE_r",
+	                                 "L_1_PHOSPHATIDYL_ETHANOLAMINE_r","DIACYLGLYCEROL_p",
+	                                 "Galactosyl_galactosyl_diacyl_glycerols_p",
+	                                 "D_Galactosyl_12_diacyl_glycerols_p","2_Lysophosphatidylcholines_r",
+	                                 "Lysophosphatidylglycerols_r","Triacylglycerols_p",
+	                                 "L_1_PHOSPHATIDYL_GLYCEROL_p","L_1_phosphatidyl_inositols_r",
+	                                 "SULFOQUINOVOSYLDIACYLGLYCEROL_p","Protein_b",
+	                                 "sMAL_b","sCIT_b","sFUM_b","ARG_c","HIS_c","LYS_c","sASP_b",
+	                                 "sGLU_b","sSER_b","THR_c","ASN_c","sGLN_b","CYS_c",
+	                                 "GLY_c","PRO_c","sALA_b","VAL_c","ILE_c","LEU_c",
+	                                 "MET_c","PHE_c","TYR_c","TRP_c","sGABA_b","PALMITATE_p",
+	                                 "CPD_9245_p","CPD_17412_p","CPD_17291_p","STEARIC_ACID_p",
+	                                 "OLEATE_CPD_p","Octadecadienoate_p","LINOLENIC_ACID_p",
+	                                 "ARACHIDIC_ACID_p","CPD_16709_p","DOCOSANOATE_p",
+	                                 "SUC_c","FUM_c","MAL_c","CIS_ACONITATE_c","CIT_c","MYO_INOSITOL_c",
+	                                 "pHIS_b","pILE_b","pTHR_b","pARG_b","pASN_b","pGLU_b","pPHE_b",
+	                                 "pGLN_b","pTYR_b","pMET_b","pASP_b","pVAL_b","pLYS_b","pSER_b",
+	                                 "pGLY_b","pALA_b","pLEU_b","pPRO_b","pCYS_b","pTRP_b","COUMARATE_c"],
+	                             "type":[""]*81,
+	                             "leaf":[0.0]*81,"stem":[0.0]*81,"root":[0.0]*81,"seed":[0.0]*81,},dtype="float64")
+	biomass = biomass.set_index("")
+	for i in ["pHIS_b","pILE_b","pTHR_b","pARG_b","pASN_b","pGLU_b","pPHE_b","pGLN_b","pTYR_b","pMET_b",
+	          "pASP_b","pVAL_b","pLYS_b","pSER_b","pGLY_b","pALA_b","pLEU_b","pPRO_b","pCYS_b","pTRP_b"]:
+	    biomass.at[i,"type"]="protein"
+	for i in ["PALMITATE_p","CPD_9245_p","CPD_17412_p","CPD_17291_p","STEARIC_ACID_p",
+	          "OLEATE_CPD_p","Octadecadienoate_p","LINOLENIC_ACID_p",
+	          "ARACHIDIC_ACID_p","CPD_16709_p","DOCOSANOATE_p"]:
+	    biomass.at[i,"type"]="fattyacid"
+	return biomass
